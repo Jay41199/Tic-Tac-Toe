@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #3f51b5;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .cell:hover {
+            background-color: #d5d5d5;
+        }
+
+        #status {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            background-color: #3f51b5;
+            color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #303f9f;
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+            animation: fall 1s ease-out forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+                opacity: 1;
+            }
+        }
+
+        /* Win message popup */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .popup h2 {
+            margin: 0 0 10px;
+            color: #3f51b5;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            background-color: #3f51b5;
+            color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        .popup button:hover {
+            background-color: #303f9f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <div id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <div id="status"></div>
+        <button id="reset">Reset</button>
+    </div>
+    <div class="confetti" id="confetti"></div>
+    <div class="popup" id="popup">
+        <h2>Congratulations!</h2>
+        <p id="popup-message"></p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+    <script>
+        const board = document.querySelector("#board");
+        const cells = document.querySelectorAll(".cell");
+        const statusText = document.querySelector("#status");
+        const resetButton = document.querySelector("#reset");
+        const confetti = document.querySelector("#confetti");
+        const popup = document.querySelector("#popup");
+        const popupMessage = document.querySelector("#popup-message");
+
+        let currentPlayer = "X";
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6],
+        ];
+
+        function handleCellClick(event) {
+            const cell = event.target;
+            const cellIndex = cell.getAttribute("data-index");
+
+            if (gameState[cellIndex] !== "" || !isGameActive()) {
+                return;
+            }
+
+            gameState[cellIndex] = currentPlayer;
+            cell.textContent = currentPlayer;
+
+            if (checkWinner()) {
+                statusText.textContent = `Player ${currentPlayer} wins!`;
+                popupMessage.textContent = `Player ${currentPlayer} wins!`;
+                showPopup();
+                launchConfetti();
+            } else if (isDraw()) {
+                statusText.textContent = "It's a draw!";
+            } else {
+                currentPlayer = currentPlayer === "X" ? "O" : "X";
+                statusText.textContent = `Player ${currentPlayer}'s turn`;
+            }
+        }
+
+        function checkWinner() {
+            return winningConditions.some(condition => {
+                const [a, b, c] = condition;
+                return gameState[a] === currentPlayer && gameState[b] === currentPlayer && gameState[c] === currentPlayer;
+            });
+        }
+
+        function isDraw() {
+            return gameState.every(cell => cell !== "");
+        }
+
+        function isGameActive() {
+            return !checkWinner() && !isDraw();
+        }
+
+        function resetGame() {
+            currentPlayer = "X";
+            gameState = ["", "", "", "", "", "", "", "", ""];
+            cells.forEach(cell => cell.textContent = "");
+            statusText.textContent = `Player ${currentPlayer}'s turn`;
+            confetti.innerHTML = "";
+            popup.style.display = "none";
+        }
+
+        function showPopup() {
+            popup.style.display = "block";
+        }
+
+        function closePopup() {
+            popup.style.display = "none";
+        }
+
+        function launchConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confettiPiece = document.createElement("div");
+                confettiPiece.classList.add("confetti-piece");
+                confettiPiece.style.backgroundColor = getRandomColor();
+                confettiPiece.style.left = `${Math.random() * 100}vw`;
+                confettiPiece.style.animationDelay = `${Math.random() * 2}s`;
+                confetti.appendChild(confettiPiece);
+            }
+        }
+
+        function getRandomColor() {
+            const colors = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722"];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        cells.forEach(cell => cell.addEventListener("click", handleCellClick));
+        resetButton.addEventListener("click", resetGame);
+
+        statusText.textContent = `Player ${currentPlayer}'s turn`;
+    </script>
+</body>
+</html>
