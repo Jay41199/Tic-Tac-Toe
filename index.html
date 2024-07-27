@@ -137,6 +137,12 @@
         .popup button:hover {
             background-color: #303f9f;
         }
+
+        /* Draw outcome styling */
+        .draw-outcome {
+            background-color: #ff0000 !important;
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body>
@@ -201,7 +207,8 @@
                 showPopup();
                 launchConfetti();
             } else if (isDraw()) {
-                statusText.textContent = "It's a draw!";
+                statusText.textContent = "A balanced outcome, neither victory nor defeat.";
+                showPopup(true);
             } else {
                 currentPlayer = currentPlayer === "X" ? "O" : "X";
                 statusText.textContent = `Player ${currentPlayer}'s turn`;
@@ -230,10 +237,15 @@
             statusText.textContent = `Player ${currentPlayer}'s turn`;
             confetti.innerHTML = "";
             popup.style.display = "none";
+            document.body.classList.remove('draw-outcome');
         }
 
-        function showPopup() {
+        function showPopup(isDraw = false) {
             popup.style.display = "block";
+            if (isDraw) {
+                popupMessage.textContent = "A balanced outcome, neither victory nor defeat.";
+                document.body.classList.add('draw-outcome');
+            }
         }
 
         function closePopup() {
