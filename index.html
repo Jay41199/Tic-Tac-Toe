@@ -164,8 +164,12 @@
     </div>
     <div class="confetti" id="confetti"></div>
     <div class="popup" id="popup">
-        <h2>Congratulations!</h2>
+        <h2>Game Over!</h2>
         <p id="popup-message"></p>
+        <div id="truth-dare" style="display: none;">
+            <button id="truth">Truth</button>
+            <button id="dare">Dare</button>
+        </div>
         <button onclick="closePopup()">Close</button>
     </div>
     <script>
@@ -176,6 +180,7 @@
         const confetti = document.querySelector("#confetti");
         const popup = document.querySelector("#popup");
         const popupMessage = document.querySelector("#popup-message");
+        const truthDareContainer = document.getElementById("truth-dare");
 
         let currentPlayer = "X";
         let gameState = ["", "", "", "", "", "", "", "", ""];
@@ -237,6 +242,7 @@
             statusText.textContent = `Player ${currentPlayer}'s turn`;
             confetti.innerHTML = "";
             popup.style.display = "none";
+            truthDareContainer.style.display = "none";
             document.body.classList.remove('draw-outcome');
         }
 
@@ -245,11 +251,15 @@
             if (isDraw) {
                 popupMessage.textContent = "A balanced outcome, neither victory nor defeat.";
                 document.body.classList.add('draw-outcome');
+            } else {
+                popupMessage.textContent = `Player ${currentPlayer} wins! The other player must choose "Truth" or "Dare."`;
+                truthDareContainer.style.display = "block";
             }
         }
 
         function closePopup() {
             popup.style.display = "none";
+            truthDareContainer.style.display = "none";
         }
 
         function launchConfetti() {
@@ -270,6 +280,14 @@
 
         cells.forEach(cell => cell.addEventListener("click", handleCellClick));
         resetButton.addEventListener("click", resetGame);
+
+        document.getElementById("truth").addEventListener("click", () => {
+            alert("Truth: What is your deepest secret?");
+        });
+
+        document.getElementById("dare").addEventListener("click", () => {
+            alert("Dare: Perform a funny dance for 30 seconds!");
+        });
 
         statusText.textContent = `Player ${currentPlayer}'s turn`;
     </script>
